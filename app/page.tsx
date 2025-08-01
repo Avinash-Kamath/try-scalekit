@@ -365,8 +365,10 @@ export default function Home() {
             console.log('New identifier generated:', currentIdentifier)
             
             // Store in cookie for 12 hours
-            setCookie('scalekit_identifier', currentIdentifier, 12)
-            setIdentifier(currentIdentifier)
+            if (currentIdentifier) {
+              setCookie('scalekit_identifier', currentIdentifier, 12)
+              setIdentifier(currentIdentifier)
+            }
           } else {
             console.error('Failed to generate identifier:', identifierResponse.status)
             setIdentifierLoading(false)
@@ -482,7 +484,7 @@ export default function Home() {
       })
       
       console.log("Response status:", response.status)
-      console.log("Response headers:", [...response.headers.entries()])
+      console.log("Response headers:", Object.fromEntries(response.headers))
       
       if (response.ok) {
         const result = await response.json()
@@ -505,8 +507,10 @@ export default function Home() {
     } catch (error) {
       console.error('Network or other error:', error)
       console.error('Error type:', typeof error)
-      console.error('Error message:', error.message)
-      console.error('Error stack:', error.stack)
+      if (error instanceof Error) {
+        console.error('Error message:', error.message)
+        console.error('Error stack:', error.stack)
+      }
     }
     setLoading(false)
   }

@@ -166,8 +166,41 @@ const Step2 = ({ onFetch, loading, isCompleted, emailData }: { onFetch: () => vo
     <div className="bg-white rounded-lg shadow-lg p-10 w-full">
       <h3 className="text-2xl font-semibold mb-2">Fetch Email</h3>
       <p className="text-gray-600 mb-6">
-        Click the button below to fetch an email using Scalekit's API
+        Auth received! Use the code snippet below to fetch emails
       </p>
+      
+      <div className="bg-green-50 border-2 border-green-200 py-3 px-4 rounded-lg mb-6">
+        <div className="flex items-center">
+          <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center mr-2">
+            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <span className="text-green-700 font-medium">Auth Received</span>
+        </div>
+      </div>
+      
+      <div className="bg-gray-900 rounded-lg overflow-hidden mb-4">
+        <div className="flex items-center justify-between bg-gray-800 px-4 py-2">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+          <span className="text-gray-400 text-xs font-mono">python</span>
+        </div>
+        <div className="p-4">
+          <pre className="text-sm font-mono whitespace-pre">
+{`response = scalekit.connect.execute_tool(
+    tool_name="GMAIL.FETCH_EMAILS",
+    identifier="{identifier}",
+    tool_input={
+        "max_results" : 1
+    },
+)`}
+          </pre>
+        </div>
+      </div>
       
       {!isCompleted ? (
         <button
@@ -175,7 +208,7 @@ const Step2 = ({ onFetch, loading, isCompleted, emailData }: { onFetch: () => vo
           disabled={loading}
           className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium mb-6"
         >
-          {loading ? 'Fetching Email...' : 'Fetch Email'}
+          {loading ? 'Running...' : 'Run'}
         </button>
       ) : (
         <div className="space-y-4">
@@ -191,20 +224,18 @@ const Step2 = ({ onFetch, loading, isCompleted, emailData }: { onFetch: () => vo
           {emailData && (
             <div className="bg-gray-50 border rounded-lg p-4">
               <h4 className="text-lg font-semibold text-gray-800 mb-3">Email Preview:</h4>
-              <div className="space-y-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <span className="text-xs font-medium text-gray-600">From:</span>
-                    <p className="text-sm text-gray-900">{emailData.from}</p>
-                  </div>
-                  <div>
-                    <span className="text-xs font-medium text-gray-600">To:</span>
-                    <p className="text-sm text-gray-900">{emailData.to}</p>
-                  </div>
-                  <div className="md:col-span-2">
-                    <span className="text-xs font-medium text-gray-600">Subject:</span>
-                    <p className="text-sm text-gray-900">{emailData.subject}</p>
-                  </div>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-xs font-medium text-gray-600">From:</span>
+                  <p className="text-sm text-gray-900">{emailData.from}</p>
+                </div>
+                <div>
+                  <span className="text-xs font-medium text-gray-600">Subject:</span>
+                  <p className="text-sm text-gray-900">{emailData.subject}</p>
+                </div>
+                <div>
+                  <span className="text-xs font-medium text-gray-600">Body:</span>
+                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{emailData.body}</p>
                 </div>
               </div>
             </div>
@@ -217,20 +248,72 @@ const Step2 = ({ onFetch, loading, isCompleted, emailData }: { onFetch: () => vo
 
 const Step3 = () => {
   return (
-    <div className="bg-white rounded-lg shadow-lg p-10 w-full text-center">
-      <div className="text-4xl mb-4">🎉</div>
-      <h3 className="text-2xl font-semibold mb-4">Congratulations!</h3>
-      <p className="text-gray-600 mb-8">
-        Congrats on execution! Visit scalekit.com for more tools
-      </p>
-      <a
-        href="https://scalekit.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-block bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 font-medium"
-      >
-        Visit Scalekit.com
-      </a>
+    <div className="bg-white rounded-lg shadow-lg p-10 w-full">
+      <div className="text-center mb-8">
+        <div className="text-4xl mb-4">🎉</div>
+        <h3 className="text-3xl font-bold text-gray-900 mb-4">You're All Set!</h3>
+        <p className="text-lg text-gray-600 leading-relaxed">
+          Congratulations! You've successfully integrated with Scalekit's platform. 
+          You now have the power to connect to Gmail and fetch emails seamlessly.
+        </p>
+      </div>
+      
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6">
+        <h4 className="text-lg font-semibold text-gray-800 mb-3">What's Next?</h4>
+        <ul className="space-y-2 text-gray-700">
+          <li className="flex items-start">
+            <span className="text-blue-600 mr-2">•</span>
+            Explore more connectors and integrations
+          </li>
+          <li className="flex items-start">
+            <span className="text-blue-600 mr-2">•</span>
+            Build powerful workflows with our APIs
+          </li>
+          <li className="flex items-start">
+            <span className="text-blue-600 mr-2">•</span>
+            Scale your integrations across multiple platforms
+          </li>
+        </ul>
+      </div>
+      
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <a
+            href="https://scalekit.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 text-center bg-gradient-to-r from-blue-500 to-blue-700 text-white py-3 px-6 rounded-lg hover:from-blue-600 hover:to-blue-800 font-medium transition-all duration-200 transform hover:scale-105"
+          >
+            explore scalekit.com
+          </a>
+          <a
+            href="https://docs.scalekit.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 text-center bg-white border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-lg hover:border-gray-400 hover:bg-gray-50 font-medium transition-all duration-200"
+          >
+            View Documentation
+          </a>
+        </div>
+        
+        <div className="text-center pt-4">
+          <div className="flex items-center justify-center mb-2">
+            <img src="/scalkit.svg" alt="Scalekit" className="h-4 opacity-60" />
+          </div>
+          <p className="text-sm text-gray-500">
+            Need help? Check out our{" "}
+            <a 
+              href="https://docs.scalekit.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-700 underline"
+            >
+              comprehensive documentation
+            </a>
+            .
+          </p>
+        </div>
+      </div>
     </div>
   )
 }
@@ -394,7 +477,8 @@ export default function Home() {
       console.log("Making request to /api/fetch-email...")
       const response = await fetch('/api/fetch-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: identifier })
       })
       
       console.log("Response status:", response.status)
@@ -435,16 +519,8 @@ export default function Home() {
     <main className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <span className="text-2xl font-bold text-gray-800">Scalekit</span>
-          </div>
           <h1 className="text-5xl font-bold text-gray-900 mb-4 leading-tight">
-            Try Scalekit in Minutes
+            Try Scalekit Tools in Seconds
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Get started with our powerful integration platform in just a few simple steps

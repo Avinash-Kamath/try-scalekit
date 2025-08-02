@@ -7,14 +7,18 @@ import json
 from google.protobuf.json_format import MessageToJson, MessageToDict
 from google.protobuf.struct_pb2 import Struct
 import scalekit.client
+from dotenv import load_dotenv
+from gmai_parser import parse_gmail_simple
 
+
+load_dotenv()
 app = Flask(__name__)
 
 # Initialize Scalekit client
 scalekit = scalekit.client.ScalekitClient(
-    client_id="skc_53814741268693059",
-    client_secret="test_ZBeqNRT3fQjTfGzFmFObkTDMlMbndBjZ3jOBADvd5OONZFBWzeOBmXiWwjlGLqCu",
-    env_url="https://kindle-dev.scalekit.cloud",
+    client_id=os.getenv("SCALEKIT_CLIENT_ID"),
+    client_secret=os.getenv("SCALEKIT_CLIENT_SECRET"),
+    env_url=os.getenv("SCALEKIT_ENV_URL"),
 )
 
 @app.route("/api/python")
@@ -28,7 +32,7 @@ def get_identifier():
         random_uuid = str(uuid.uuid4())
         
         # Hash the client_id
-        client_id = "skc_53814741268693059"
+        client_id = os.getenv("SCALEKIT_CLIENT_ID", "skc_53814741268693059")
         client_hash = hashlib.sha256(client_id.encode()).hexdigest()[:8]
         
         # Combine UUID + client_id hash
@@ -172,7 +176,7 @@ def fetch_email():
                 "max_results" : 1
             },
         )
-        print(response)
+        parsed_response = parse_gmail_simple(response.data)
         
         if not identifier:
             return jsonify({
@@ -184,12 +188,7 @@ def fetch_email():
         return jsonify({
             "success": True,
             "message": "Email fetched successfully",
-            "email": {
-                "id": "google_security_123",
-                "subject": "You allowed scalekit.cloud access to some of your Google Account data",
-                "from": "Google <no-reply@accounts.google.com>",
-                "body": "avinashmkamath@gmail.com\n\nIf you didn't allow scalekit.cloud access to some of your Google Account data, someone else may be trying to access your Google Account data.\n\nTake a moment now to check your account activity and secure your account.\n\nCheck activity\nTo make changes at any time to the access that scalekit.cloud has to your data, go to your Google Account\nYou can also see security activity at\nhttps://myaccount.google.com/notifications"
-            }
+            "email": parsed_response
         })
             
     except Exception as e:

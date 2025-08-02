@@ -8,7 +8,7 @@ from google.protobuf.json_format import MessageToJson, MessageToDict
 from google.protobuf.struct_pb2 import Struct
 import scalekit.client
 from dotenv import load_dotenv
-from gmai_parser import parse_gmail_simple
+from .gmai_parser import parse_gmail_simple
 
 
 load_dotenv()

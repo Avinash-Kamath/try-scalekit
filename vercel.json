@@ -1,9 +1,0 @@
-{
-  "buildCommand": "next build",
-  "installCommand": "pnpm install --shamefully-hoist",
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.9@latest"
-    }
-  }
-}

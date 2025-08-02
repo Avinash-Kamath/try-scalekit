@@ -36,3 +36,7 @@ next-env.d.ts
 __pycache__
 *.env
 .env
+
+# IDE and Claude files
+.idea/
+.CLAUDE/

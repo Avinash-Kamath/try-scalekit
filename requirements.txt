@@ -1,6 +1,5 @@
 Flask==3.0.3
-a-beta-scalekit==2.3.0
+a-beta-scalekit==2.3.1b1
 protobuf~=5.29.5
-
 google~=3.0.0
 python-dotenv~=1.0.1

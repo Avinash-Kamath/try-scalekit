@@ -38,5 +38,5 @@ __pycache__
 .env
 
 # IDE and Claude files
-.idea/
-.CLAUDE/
+.idea/*
+.CLAUDE

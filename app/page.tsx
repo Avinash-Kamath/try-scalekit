@@ -105,7 +105,7 @@ const Step1 = ({ onNext, loading, isCompleted, authLinkLoading, identifierLoadin
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-10 w-full text-center relative">
+    <div className="bg-white rounded-lg shadow-2xl border-2 border-gray-300 p-10 w-full text-center relative">
       {/* Gmail logo at top left */}
       <div className="absolute top-6 left-6">
         <svg className="w-8 h-8" viewBox="0 0 24 24">
@@ -163,7 +163,7 @@ const Step1 = ({ onNext, loading, isCompleted, authLinkLoading, identifierLoadin
 
 const Step2 = ({ onFetch, loading, isCompleted, emailData }: { onFetch: () => void, loading: boolean, isCompleted: boolean, emailData?: any }) => {
   return (
-    <div className="bg-white rounded-lg shadow-lg p-10 w-full">
+    <div className="bg-white rounded-lg shadow-2xl border-2 border-gray-300 p-10 w-full">
       <h3 className="text-2xl font-semibold mb-2">Fetch Email</h3>
       <p className="text-gray-600 mb-6">
         Auth received! Use the code snippet below to fetch emails
@@ -234,8 +234,32 @@ const Step2 = ({ onFetch, loading, isCompleted, emailData }: { onFetch: () => vo
                   <p className="text-sm text-gray-900">{emailData.subject}</p>
                 </div>
                 <div>
-                  <span className="text-xs font-medium text-gray-600">Body:</span>
-                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{emailData.body}</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-gray-600">Body:</span>
+                    <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
+                      {emailData.content_type || 'text/plain'}
+                    </span>
+                  </div>
+                  <div className="border rounded-lg bg-white max-h-48 overflow-y-auto">
+                    <div className="p-3">
+                      {emailData.content_type === 'text/html' || emailData.html_body ? (
+                        <div 
+                          className="text-sm text-gray-900 prose prose-sm max-w-none"
+                          dangerouslySetInnerHTML={{ 
+                            __html: emailData.html_body || emailData.body 
+                          }}
+                          style={{
+                            fontSize: '14px',
+                            lineHeight: '1.5',
+                          }}
+                        />
+                      ) : (
+                        <p className="text-sm text-gray-900 whitespace-pre-wrap font-mono">
+                          {emailData.text_body || emailData.body}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -248,7 +272,7 @@ const Step2 = ({ onFetch, loading, isCompleted, emailData }: { onFetch: () => vo
 
 const Step3 = () => {
   return (
-    <div className="bg-white rounded-lg shadow-lg p-10 w-full">
+    <div className="bg-white rounded-lg shadow-2xl border-2 border-gray-300 p-10 w-full">
       <div className="text-center mb-8">
         <div className="text-4xl mb-4">🎉</div>
         <h3 className="text-3xl font-bold text-gray-900 mb-4">You're All Set!</h3>
@@ -301,14 +325,12 @@ const Step3 = () => {
             <img src="/scalkit.svg" alt="Scalekit" className="h-4 opacity-60" />
           </div>
           <p className="text-sm text-gray-500">
-            Need help? Check out our{" "}
+            Need help? Email us at{" "}
             <a 
-              href="https://docs.scalekit.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
+              href="mailto:hi@scalekit.com" 
               className="text-blue-600 hover:text-blue-700 underline"
             >
-              comprehensive documentation
+              hi@scalekit.com
             </a>
             .
           </p>
@@ -318,18 +340,6 @@ const Step3 = () => {
   )
 }
 
-// Cookie utility functions
-const getCookie = (name: string): string | null => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-  return null;
-}
-
-const setCookie = (name: string, value: string, hours: number) => {
-  const maxAge = hours * 60 * 60; // Convert hours to seconds
-  document.cookie = `${name}=${value}; max-age=${maxAge}; path=/`;
-}
 
 export default function Home() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -342,38 +352,48 @@ export default function Home() {
   const [identifier, setIdentifier] = useState<string | null>(null)
   const [identifierLoading, setIdentifierLoading] = useState(true)
 
+  // Auto-refresh timer for Step 1 (auth link expires every 4 minutes)
+  React.useEffect(() => {
+    let refreshTimer: NodeJS.Timeout | null = null;
+
+    if (currentStep === 1 && !loading) {
+      // Set timer to refresh page every 4 minutes when on Step 1
+      refreshTimer = setTimeout(() => {
+        if (currentStep === 1) {
+          window.location.reload();
+        }
+      }, 4 * 60 * 1000); // 4 minutes
+    }
+
+    // Cleanup timer
+    return () => {
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+    };
+  }, [currentStep, loading]);
+
   // Get or generate identifier and auth link on component mount
   React.useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Check for existing identifier in cookie
-        let currentIdentifier = getCookie('scalekit_identifier')
+        // Generate new identifier on every page load
+        console.log('Generating new identifier...')
+        const identifierResponse = await fetch('/api/get-identifier', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        })
         
-        if (currentIdentifier) {
-          console.log('Using existing identifier from cookie:', currentIdentifier)
+        let currentIdentifier = null
+        if (identifierResponse.ok) {
+          const identifierResult = await identifierResponse.json()
+          currentIdentifier = identifierResult.identifier
+          console.log('New identifier generated:', currentIdentifier)
           setIdentifier(currentIdentifier)
         } else {
-          console.log('No identifier found, generating new one...')
-          const identifierResponse = await fetch('/api/get-identifier', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-          })
-          
-          if (identifierResponse.ok) {
-            const identifierResult = await identifierResponse.json()
-            currentIdentifier = identifierResult.identifier
-            console.log('New identifier generated:', currentIdentifier)
-            
-            // Store in cookie for 12 hours
-            if (currentIdentifier) {
-              setCookie('scalekit_identifier', currentIdentifier, 12)
-              setIdentifier(currentIdentifier)
-            }
-          } else {
-            console.error('Failed to generate identifier:', identifierResponse.status)
-            setIdentifierLoading(false)
-            return
-          }
+          console.error('Failed to generate identifier:', identifierResponse.status)
+          setIdentifierLoading(false)
+          return
         }
         
         setIdentifierLoading(false)
@@ -521,22 +541,24 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50 py-12 px-4">
+      {/* Fixed bottom right Scalekit icon */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <img src="/scalkit.svg" alt="Scalekit" className="h-16 w-16 opacity-60" />
+      </div>
+      
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-20">
           <h1 className="text-5xl font-bold text-gray-900 mb-4 leading-tight">
             Try Scalekit Tools in Seconds
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Get started with our powerful integration platform in just a few simple steps
-          </p>
         </div>
         
-        <div className="flex min-h-screen">
-          {/* Left side - Stepper with content boxes directly below each step */}
-          <div className="w-2/3 pr-8 space-y-8">
-            {/* Step 1 Section */}
-            <div className="space-y-8">
-              <div className="flex items-start">
+        <div className="flex justify-center">
+          {/* Centered stepper content */}
+          <div className="w-full max-w-4xl">
+            <div className="relative">
+              {/* Step 1 */}
+              <div className="flex items-start relative">
                 <div className="flex flex-col items-center mr-6">
                   <div className={`flex items-center justify-center w-12 h-12 rounded-full text-lg font-semibold border-2 ${
                     1 <= currentStep 
@@ -547,38 +569,36 @@ export default function Home() {
                   }`}>
                     {1 < currentStep ? '✓' : 1}
                   </div>
-                  <div className={`w-0.5 h-full mt-2 ${
-                    1 < currentStep ? 'bg-blue-600' : 'bg-gray-200'
-                  }`} style={{ minHeight: '200px' }} />
+                  {/* Dynamic connecting line to next step */}
+                  {currentStep >= 2 && (
+                    <div className={`w-0.5 absolute top-12 ${
+                      1 < currentStep ? 'bg-blue-600' : 'bg-gray-200'
+                    }`} style={{ 
+                      height: 'calc(100% - 3rem)',
+                      zIndex: 0
+                    }} />
+                  )}
                 </div>
-                <div className="flex-1 pt-2 space-y-4">
-                  <div>
+                <div className="flex-1 pt-2 pb-8">
+                  <div className="mb-4">
                     <h3 className={`text-lg font-semibold ${
                       1 <= currentStep ? 'text-gray-900' : 'text-gray-400'
                     }`}>
                       Connect Account
                     </h3>
-                    <p className={`text-sm mt-1 ${
-                      1 <= currentStep ? 'text-gray-600' : 'text-gray-400'
-                    }`}>
-                      Link your Gmail account
-                    </p>
                   </div>
-                  
                   
                   {/* Step 1 content box */}
                   {(currentStep === 1 || completedSteps[1]) && (
-                    <div className="mt-4">
+                    <div>
                       <Step1 onNext={handleStep1Next} loading={loading} isCompleted={completedSteps[1]} authLinkLoading={authLinkLoading} identifierLoading={identifierLoading} />
                     </div>
                   )}
                 </div>
               </div>
-            </div>
 
-            {/* Step 2 Section */}
-            <div className="space-y-8">
-              <div className="flex items-start">
+              {/* Step 2 */}
+              <div className="flex items-start relative">
                 <div className="flex flex-col items-center mr-6">
                   <div className={`flex items-center justify-center w-12 h-12 rounded-full text-lg font-semibold border-2 ${
                     2 <= currentStep 
@@ -589,38 +609,36 @@ export default function Home() {
                   }`}>
                     {2 < currentStep ? '✓' : 2}
                   </div>
-                  <div className={`w-0.5 h-full mt-2 ${
-                    2 < currentStep ? 'bg-blue-600' : 'bg-gray-200'
-                  }`} style={{ minHeight: '200px' }} />
+                  {/* Dynamic connecting line to next step */}
+                  {currentStep >= 3 && (
+                    <div className={`w-0.5 absolute top-12 ${
+                      2 < currentStep ? 'bg-blue-600' : 'bg-gray-200'
+                    }`} style={{ 
+                      height: 'calc(100% - 3rem)',
+                      zIndex: 0
+                    }} />
+                  )}
                 </div>
-                <div className="flex-1 pt-2 space-y-4">
+                <div className="flex-1 pb-8">
                   <div>
                     <h3 className={`text-lg font-semibold ${
                       2 <= currentStep ? 'text-gray-900' : 'text-gray-400'
                     }`}>
                       Fetch Email
                     </h3>
-                    <p className={`text-sm mt-1 ${
-                      2 <= currentStep ? 'text-gray-600' : 'text-gray-400'
-                    }`}>
-                      Fetch email content
-                    </p>
                   </div>
-                  
                   
                   {/* Step 2 content box */}
                   {(currentStep === 2 || completedSteps[2]) && (
-                    <div className="mt-4">
+                    <div className="mt-2">
                       <Step2 onFetch={handleFetchEmail} loading={loading} isCompleted={completedSteps[2]} emailData={stepResults[2]?.email} />
                     </div>
                   )}
                 </div>
               </div>
-            </div>
 
-            {/* Step 3 Section */}
-            <div className="space-y-8">
-              <div className="flex items-start">
+              {/* Step 3 */}
+              <div className="flex items-start relative">
                 <div className="flex flex-col items-center mr-6">
                   <div className={`flex items-center justify-center w-12 h-12 rounded-full text-lg font-semibold border-2 ${
                     3 <= currentStep 
@@ -632,35 +650,24 @@ export default function Home() {
                     {3 < currentStep ? '✓' : 3}
                   </div>
                 </div>
-                <div className="flex-1 pt-2 space-y-4">
-                  <div>
+                <div className="flex-1 pt-2 pb-4">
+                  <div className="mb-4">
                     <h3 className={`text-lg font-semibold ${
                       3 <= currentStep ? 'text-gray-900' : 'text-gray-400'
                     }`}>
                       Get Started
                     </h3>
-                    <p className={`text-sm mt-1 ${
-                      3 <= currentStep ? 'text-gray-600' : 'text-gray-400'
-                    }`}>
-                      Complete setup
-                    </p>
                   </div>
-                  
                   
                   {/* Step 3 content box */}
                   {currentStep === 3 && (
-                    <div className="mt-4">
+                    <div>
                       <Step3 />
                     </div>
                   )}
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Right side - Empty for now */}
-          <div className="w-1/3">
-            {/* This space can be used for additional content if needed */}
           </div>
         </div>
       </div>

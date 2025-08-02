@@ -38,18 +38,107 @@ def parse_gmail_simple(gmail_data):
             elif name == 'from':
                 from_email = value
 
-        # Extract body
-        body = extract_body_simple(payload)
+        # Extract body content with type information
+        body_info = extract_body_enhanced(payload)
 
         return {
             "id": email_id,
             "subject": subject,
             "from": from_email,
-            "body": body
+            "body": body_info["body"],
+            "content_type": body_info["content_type"],
+            "html_body": body_info.get("html_body"),
+            "text_body": body_info.get("text_body")
         }
 
     except Exception as e:
         raise Exception(f"Error parsing email: {e}") from e
+
+def extract_body_enhanced(payload):
+    """Extract email body content preserving both HTML and text formats"""
+    
+    def decode_base64_data(data):
+        """Decode base64 data safely"""
+        try:
+            # Add padding if needed
+            missing_padding = len(data) % 4
+            if missing_padding:
+                data += '=' * (4 - missing_padding)
+            return base64.urlsafe_b64decode(data).decode('utf-8')
+        except Exception as e:
+            raise Exception(f"Base64 decode error: {e}") from e
+
+    def clean_html(html_content):
+        """Convert HTML to plain text"""
+        # Remove HTML tags
+        text = re.sub('<.*?>', '', html_content)
+        # Decode HTML entities
+        text = html.unescape(text)
+        # Clean up whitespace and newlines
+        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r'\n\s*\n', '\n\n', text)
+        return text.strip()
+
+    plain_text = ""
+    html_text = ""
+    content_type = "text/plain"
+
+    # Check if payload has parts (multipart message)
+    if 'parts' in payload:
+        content_type = "multipart"
+        
+        for part in payload['parts']:
+            mime_type = part.get('mimeType', '')
+
+            # Check if this part has body data
+            if 'body' in part and 'data' in part['body']:
+                part_data = decode_base64_data(part['body']['data'])
+
+                if 'text/plain' in mime_type:
+                    plain_text = part_data
+                elif 'text/html' in mime_type:
+                    html_text = part_data
+
+            # Check nested parts (for complex multipart messages)
+            elif 'parts' in part:
+                nested_info = extract_body_enhanced(part)
+                if not plain_text and nested_info.get("text_body"):
+                    plain_text = nested_info["text_body"]
+                if not html_text and nested_info.get("html_body"):
+                    html_text = nested_info["html_body"]
+
+    # Check if payload has body data directly (simple message)
+    elif 'body' in payload and 'data' in payload['body']:
+        body_data = decode_base64_data(payload['body']['data'])
+        mime_type = payload.get('mimeType', '')
+
+        if 'text/plain' in mime_type:
+            plain_text = body_data
+            content_type = "text/plain"
+        elif 'text/html' in mime_type:
+            html_text = body_data
+            content_type = "text/html"
+
+    # Determine the best body content to return
+    if html_text:
+        # If we have HTML, use it as primary content
+        primary_body = html_text
+        if content_type != "multipart":
+            content_type = "text/html"
+    elif plain_text:
+        # Fallback to plain text
+        primary_body = plain_text
+        if content_type != "multipart":
+            content_type = "text/plain"
+    else:
+        primary_body = ""
+
+    return {
+        "body": primary_body,
+        "content_type": content_type,
+        "html_body": html_text if html_text else None,
+        "text_body": plain_text if plain_text else None
+    }
 
 def extract_body_simple(payload):
     """Extract email body content from your Gmail API response format"""

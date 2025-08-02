@@ -3,3 +3,4 @@ a-beta-scalekit==2.3.1b1
 protobuf~=5.29.5
 google~=3.0.0
 python-dotenv~=1.0.1
+pydantic~=2.10.6

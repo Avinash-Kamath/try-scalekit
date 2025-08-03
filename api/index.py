@@ -1,14 +1,10 @@
 from flask import Flask, request, jsonify
-import time
 import os
 import uuid
 import hashlib
-import json
-from google.protobuf.json_format import MessageToJson, MessageToDict
-from google.protobuf.struct_pb2 import Struct
 import scalekit.client
 from dotenv import load_dotenv
-from gmai_parser import parse_gmail_simple
+from .gmai_parser import parse_gmail_simple
 
 
 load_dotenv()
@@ -152,6 +148,11 @@ def fetch_email():
     try:
         data = request.get_json()
         identifier = data.get('identifier')
+        if not identifier:
+            return jsonify({
+                "success": False,
+                "error": "Identifier is required"
+            }), 400
 
         response = scalekit.connect.execute_tool(
             tool_name="GMAIL.FETCH_MAILS",
@@ -161,14 +162,8 @@ def fetch_email():
             },
         )
         parsed_response = parse_gmail_simple(response.data)
-        
-        if not identifier:
-            return jsonify({
-                "success": False,
-                "error": "Identifier is required"
-            }), 400
-        
-        # Return dummy Google security email response
+
+
         return jsonify({
             "success": True,
             "message": "Email fetched successfully",

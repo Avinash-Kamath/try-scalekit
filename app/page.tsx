@@ -190,7 +190,7 @@ const Step2 = ({ onFetch, loading, isCompleted, emailData }: { onFetch: () => vo
           <span className="text-gray-400 text-xs font-mono">python</span>
         </div>
         <div className="p-4">
-          <pre className="text-sm font-mono whitespace-pre">
+          <pre className="text-sm font-mono whitespace-pre text-white">
 {`response = scalekit.connect.execute_tool(
     tool_name="GMAIL.FETCH_EMAILS",
     identifier="{identifier}",

@@ -8,7 +8,7 @@ from google.protobuf.json_format import MessageToJson, MessageToDict
 from google.protobuf.struct_pb2 import Struct
 import scalekit.client
 from dotenv import load_dotenv
-from .gmai_parser import parse_gmail_simple
+from gmai_parser import parse_gmail_simple
 
 
 load_dotenv()
@@ -106,16 +106,10 @@ def check_connection_status():
             }), 500
         
         accounts_response = response[0]
-        print(f"Accounts response: {accounts_response}")
-        print(f"Accounts response type: {type(accounts_response)}")
-        print(f"Accounts response dir: {dir(accounts_response)}")
         
         if hasattr(accounts_response, 'connected_accounts'):
             connected_accounts = accounts_response.connected_accounts
-            print(f"Connected accounts: {connected_accounts}")
-            print(f"Connected accounts length: {len(connected_accounts)}")
         else:
-            print("No 'connected_accounts' attribute found")
             return jsonify({
                 "success": True,
                 "status": "pending",
@@ -125,20 +119,10 @@ def check_connection_status():
 
         # Check if any accounts are active
         for i, account in enumerate(connected_accounts):
-                print(f"Account {i}: {account}")
-                print(f"Account {i} type: {type(account)}")
-                print(f"Account {i} identifier: {account.identifier}")
-                print(f"Account {i} provider: {account.provider}")
-                print(f"Account {i} status: {account.status}")
-                print(f"Account {i} status type: {type(account.status)}")
-                print(f"Account {i} connector: {account.connector}")
-                
                 # Check if account status is ACTIVE (could be enum or string)
                 is_active = (account.status == 1 or
                            str(account.status) == "ACTIVE" or
                            (hasattr(account.status, 'name') and account.status.name == "ACTIVE"))
-                
-                print(f"Account {i} is_active: {is_active}")
                 
                 if is_active:
                     return jsonify({

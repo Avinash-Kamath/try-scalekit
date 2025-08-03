@@ -1,10 +1,7 @@
 # Try Scalekit
 
-A demo project showcasing Scalekit's Gmail integration tools using Next.js and Flask.
 
-## About
-
-This project demonstrates how to use Scalekit's powerful integration platform to connect with Gmail. Experience seamless OAuth flows, email fetching, and HTML email rendering through an intuitive step-by-step interface.
+This project demonstrates how to use Scalekit's connect platform to connect with Gmail.
 
 **Learn more about Scalekit:** [docs.scalekit.com](https://docs.scalekit.com)
 

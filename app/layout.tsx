@@ -6,6 +6,7 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata = {
   title: 'Try Scalekit',
   description: 'Experience Scalekit\'s Gmail integration platform',
+  viewport: 'width=device-width, initial-scale=1',
 }
 
 export default function RootLayout({
